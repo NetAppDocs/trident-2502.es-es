@@ -1,0 +1,100 @@
+---
+sidebar: sidebar 
+permalink: trident-use/manage-stor-class.html 
+keywords: storage class, manage storage class, storage classes, kubernetes storage classes 
+summary: Puede ver las clases de almacenamiento existentes, definir una clase de almacenamiento predeterminada, identificar el back-end de la clase de almacenamiento y eliminar clases de almacenamiento. 
+---
+= Gestione las clases de almacenamiento
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Puede ver las clases de almacenamiento existentes, definir una clase de almacenamiento predeterminada, identificar el back-end de la clase de almacenamiento y eliminar clases de almacenamiento.
+
+
+
+== Consulte las clases de almacenamiento existentes
+
+* Para ver las clases de almacenamiento Kubernetes existentes, ejecute el siguiente comando:
+
+
+[listing]
+----
+kubectl get storageclass
+----
+* Para ver la información sobre la clase de almacenamiento Kubernetes, ejecute el siguiente comando:
+
+
+[listing]
+----
+kubectl get storageclass <storage-class> -o json
+----
+* Para ver las clases de almacenamiento sincronizado de Trident, ejecute el siguiente comando:
+
+
+[listing]
+----
+tridentctl get storageclass
+----
+* Para ver los detalles de la clase de almacenamiento sincronizado de Trident, ejecute el siguiente comando:
+
+
+[listing]
+----
+tridentctl get storageclass <storage-class> -o json
+----
+
+
+== Establecer una clase de almacenamiento predeterminada
+
+Kubernetes 1.6 añadió la capacidad de establecer un tipo de almacenamiento predeterminado. Esta es la clase de almacenamiento que se usará para aprovisionar un volumen persistente si un usuario no especifica una en una solicitud de volumen persistente (PVC).
+
+* Defina una clase de almacenamiento predeterminada estableciendo la anotación `storageclass.kubernetes.io/is-default-class` en TRUE en la definición de la clase de almacenamiento. Según la especificación, cualquier otro valor o ausencia de la anotación se interpreta como falso.
+* Puede configurar una clase de almacenamiento existente para que sea la clase de almacenamiento predeterminada mediante el siguiente comando:
+
+
+[listing]
+----
+kubectl patch storageclass <storage-class-name> -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+----
+* De forma similar, puede eliminar la anotación predeterminada de la clase de almacenamiento mediante el siguiente comando:
+
+
+[listing]
+----
+kubectl patch storageclass <storage-class-name> -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
+----
+También hay ejemplos en el paquete del instalador de Trident que incluyen esta anotación.
+
+
+NOTE: Solo debe haber una clase de almacenamiento predeterminada en el clúster a la vez. Si no dispone de más de una, técnicamente, Kubernetes no le impide ofrecer más de una, pero funcionará como si no hubiera una clase de almacenamiento predeterminada en absoluto.
+
+
+
+== Identifique el back-end para una clase de almacenamiento
+
+Este es un ejemplo del tipo de preguntas que puede responder con el JSON que `tridentctl` genera los objetos de backend Trident. Esto utiliza la `jq` utilidad, que es posible que tenga que instalar primero.
+
+[listing]
+----
+tridentctl get storageclass -o json | jq  '[.items[] | {storageClass: .Config.name, backends: [.storage]|unique}]'
+----
+
+
+== Elimine una clase de almacenamiento
+
+Para eliminar una clase de almacenamiento de Kubernetes, ejecute el siguiente comando:
+
+[listing]
+----
+kubectl delete storageclass <storage-class>
+----
+`<storage-class>` se debe sustituir por su clase de almacenamiento.
+
+Todos los volúmenes persistentes que se hayan creado a través de esta clase de almacenamiento permanecerán intactos, y Trident continuará gestionándolos.
+
+
+NOTE: Trident aplica un espacio en blanco `fsType` para los volúmenes que crea. En el caso de los back-ends iSCSI, se recomienda aplicar `parameters.fsType` en la clase de almacenamiento. Debe eliminar StorageClasses existentes y volver a crearlos con `parameters.fsType` los especificados.

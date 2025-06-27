@@ -1,0 +1,272 @@
+---
+sidebar: sidebar 
+permalink: trident-use/element.html 
+keywords: trident backend, solidfire, netapp hci, drivers, access modes, rwo, rwx, rwp, rwop, file system 
+summary: Descubra cómo crear y usar un back-end de Element con la instalación de Trident. 
+---
+= Configure un back-end de NetApp HCI o SolidFire
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Aprende a crear y usar un back-end de Element con tu instalación de Trident.
+
+
+
+== Detalles del controlador de elementos
+
+Trident proporciona `solidfire-san` el controlador de almacenamiento para comunicarse con el clúster. Los modos de acceso admitidos son: _ReadWriteOnce_ (RWO), _ReadOnlyMany_ (ROX), _ReadWriteMany_ (RWX), _ReadWriteOncePod_ (RWOP).
+
+ `solidfire-san`El controlador de almacenamiento admite los modos de volumen _FILE_ y _BLOCK_. Para el `Filesystem` volumeMode, Trident crea un volumen y crea un sistema de archivos. El tipo de sistema de archivos se especifica mediante StorageClass.
+
+[cols="5"]
+|===
+| Controlador | Protocolo | Modo VolumeMode | Modos de acceso compatibles | Sistemas de archivos compatibles 
+
+
+| `solidfire-san`  a| 
+iSCSI
+ a| 
+Bloque
+ a| 
+RWO, ROX, RWX, RWOP
+ a| 
+No hay sistema de archivos. Dispositivo de bloque RAW.
+
+
+
+| `solidfire-san`  a| 
+iSCSI
+ a| 
+Sistema de archivos
+ a| 
+RWO, RWOP
+ a| 
+`xfs`, `ext3`, , `ext4`
+
+|===
+
+
+== Antes de empezar
+
+Necesitarás lo siguiente antes de crear un backend de elemento.
+
+* Es un sistema de almacenamiento compatible que ejecuta el software Element.
+* Credenciales a un usuario administrador del clúster o inquilino de HCI de NetApp/SolidFire que puede gestionar volúmenes.
+* Todos sus nodos de trabajo de Kubernetes deben tener instaladas las herramientas iSCSI adecuadas. Consulte link:../trident-use/worker-node-prep.html["información de preparación del nodo de trabajo"].
+
+
+
+
+== Opciones de configuración del back-end
+
+Consulte la siguiente tabla para ver las opciones de configuración del back-end:
+
+[cols="3"]
+|===
+| Parámetro | Descripción | Predeterminado 
+
+
+| `version` |  | Siempre 1 
+
+
+| `storageDriverName` | Nombre del controlador de almacenamiento | Siempre «SolidFire-san» 
+
+
+| `backendName` | Nombre personalizado o el back-end de almacenamiento | «SolidFire_» + dirección IP de almacenamiento (iSCSI) 
+
+
+| `Endpoint` | MVIP para el clúster de SolidFire con credenciales de inquilino |  
+
+
+| `SVIP` | La dirección IP y el puerto de almacenamiento (iSCSI) |  
+
+
+| `labels` | Conjunto de etiquetas con formato JSON arbitrario que se aplica en los volúmenes. | "" 
+
+
+| `TenantName` | Nombre de inquilino que se va a usar (creado si no se encuentra) |  
+
+
+| `InitiatorIFace` | Restringir el tráfico de iSCSI a una interfaz de host específica | "predeterminado" 
+
+
+| `UseCHAP` | Utilice CHAP para autenticar iSCSI. Trident utiliza CHAP. | verdadero 
+
+
+| `AccessGroups` | Lista de ID de grupos de acceso que se van a usar | Busca el ID de un grupo de acceso llamado Trident. 
+
+
+| `Types` | Especificaciones de calidad de servicio |  
+
+
+| `limitVolumeSize` | Error en el aprovisionamiento si el tamaño del volumen solicitado es superior a este valor | "" (no se aplica de forma predeterminada) 
+
+
+| `debugTraceFlags` | Indicadores de depuración que se deben usar para la solución de problemas. Ejemplo, {«api»:false, «method»:true} | nulo 
+|===
+
+WARNING: No lo utilice `debugTraceFlags` a menos que esté solucionando problemas y necesite un volcado de log detallado.
+
+
+
+== Ejemplo 1: Configuración back-end para `solidfire-san` el controlador con tres tipos de volumen
+
+Este ejemplo muestra un archivo de back-end mediante autenticación CHAP y modelado de tres tipos de volúmenes con garantías de calidad de servicio específicas. Lo más probable es que a continuación defina las clases de almacenamiento para consumir cada una de ellas mediante `IOPS` el parámetro de clase storage.
+
+[source, yaml]
+----
+---
+version: 1
+storageDriverName: solidfire-san
+Endpoint: https://<user>:<password>@<mvip>/json-rpc/8.0
+SVIP: <svip>:3260
+TenantName: <tenant>
+labels:
+  k8scluster: dev1
+  backend: dev1-element-cluster
+UseCHAP: true
+Types:
+  - Type: Bronze
+    Qos:
+      minIOPS: 1000
+      maxIOPS: 2000
+      burstIOPS: 4000
+  - Type: Silver
+    Qos:
+      minIOPS: 4000
+      maxIOPS: 6000
+      burstIOPS: 8000
+  - Type: Gold
+    Qos:
+      minIOPS: 6000
+      maxIOPS: 8000
+      burstIOPS: 10000
+----
+
+
+== Ejemplo 2: Configuración de back-end y clase de almacenamiento para `solidfire-san` controlador con pools virtuales
+
+En este ejemplo, se muestra el archivo de definición del back-end configurado con pools virtuales junto con StorageClasses que les devuelve referencia.
+
+Las etiquetas de copias de Trident están presentes en un pool de almacenamiento en el LUN de almacenamiento back-end en el momento del aprovisionamiento. Para mayor comodidad, los administradores de almacenamiento pueden definir etiquetas por pool virtual y agrupar volúmenes por etiqueta.
+
+En el archivo de definición de backend de ejemplo que se muestra a continuación, se establecen valores predeterminados específicos para todos los pools de almacenamiento, que establecen `type` AT Silver. Los pools virtuales se definen en la `storage` sección. En este ejemplo, algunos pools de almacenamiento establecen su propio tipo, y algunos pools anulan los valores predeterminados definidos anteriormente.
+
+[source, yaml]
+----
+---
+version: 1
+storageDriverName: solidfire-san
+Endpoint: https://<user>:<password>@<mvip>/json-rpc/8.0
+SVIP: <svip>:3260
+TenantName: <tenant>
+UseCHAP: true
+Types:
+  - Type: Bronze
+    Qos:
+      minIOPS: 1000
+      maxIOPS: 2000
+      burstIOPS: 4000
+  - Type: Silver
+    Qos:
+      minIOPS: 4000
+      maxIOPS: 6000
+      burstIOPS: 8000
+  - Type: Gold
+    Qos:
+      minIOPS: 6000
+      maxIOPS: 8000
+      burstIOPS: 10000
+type: Silver
+labels:
+  store: solidfire
+  k8scluster: dev-1-cluster
+region: us-east-1
+storage:
+  - labels:
+      performance: gold
+      cost: "4"
+    zone: us-east-1a
+    type: Gold
+  - labels:
+      performance: silver
+      cost: "3"
+    zone: us-east-1b
+    type: Silver
+  - labels:
+      performance: bronze
+      cost: "2"
+    zone: us-east-1c
+    type: Bronze
+  - labels:
+      performance: silver
+      cost: "1"
+    zone: us-east-1d
+
+
+----
+Las siguientes definiciones de StorageClass se refieren a los pools virtuales anteriores. En `parameters.selector` el campo, cada StorageClass indica qué pools virtuales pueden utilizarse para alojar un volumen. El volumen tendrá los aspectos definidos en el pool virtual elegido.
+
+El primer StorageClass (`solidfire-gold-four`) se asignará al primer pool virtual. Este es el único pool que ofrece rendimiento de oro con A `Volume Type QoS` de Oro. The Last StorageClass (`solidfire-silver`) llama a cualquier pool de almacenamiento que ofrece un rendimiento óptimo. Trident decidirá qué pool virtual se selecciona y garantiza que se cumpla el requisito de almacenamiento.
+
+[source, yaml]
+----
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: solidfire-gold-four
+provisioner: csi.trident.netapp.io
+parameters:
+  selector: performance=gold; cost=4
+  fsType: ext4
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: solidfire-silver-three
+provisioner: csi.trident.netapp.io
+parameters:
+  selector: performance=silver; cost=3
+  fsType: ext4
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: solidfire-bronze-two
+provisioner: csi.trident.netapp.io
+parameters:
+  selector: performance=bronze; cost=2
+  fsType: ext4
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: solidfire-silver-one
+provisioner: csi.trident.netapp.io
+parameters:
+  selector: performance=silver; cost=1
+  fsType: ext4
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: solidfire-silver
+provisioner: csi.trident.netapp.io
+parameters:
+  selector: performance=silver
+  fsType: ext4
+----
+
+
+== Obtenga más información
+
+* link:../trident-concepts/vol-access-groups.html["Los grupos de acceso de volúmenes"^]
+

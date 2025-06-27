@@ -1,0 +1,133 @@
+---
+sidebar: sidebar 
+permalink: trident-docker/volumes-docker.html 
+keywords: create volumes, Trident, trident for docker, docker, docker volume 
+summary: 'Para crear volúmenes, utilice los comandos estándar `docker volume` con el nombre de controlador Trident especificado cuando sea necesario.' 
+---
+= Trabaje con volúmenes
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Es posible crear, clonar y quitar volúmenes fácilmente mediante los comandos estándar `docker volume` con el nombre de controlador de Trident especificado cuando se necesita.
+
+
+
+== Cree un volumen
+
+* Cree un volumen con un controlador con el nombre predeterminado:
++
+[source, console]
+----
+docker volume create -d netapp --name firstVolume
+----
+* Cree un volumen con una instancia específica de Trident:
++
+[source, console]
+----
+docker volume create -d ntap_bronze --name bronzeVolume
+----
++
+
+NOTE: Si no especifica ninguna link:volume-driver-options.html["opciones"^], se utilizarán los valores por defecto del controlador.
+
+* Anule el tamaño de volumen predeterminado. Consulte el siguiente ejemplo para crear un volumen de 20 GIB con un controlador:
++
+[source, console]
+----
+docker volume create -d netapp --name my_vol --opt size=20G
+----
++
+
+TIP: Los tamaños de volumen se expresan como cadenas que contienen un valor entero con unidades opcionales (por ejemplo: 10G, 20 GB, 3 TIB). Si no se especifica ninguna unidad, el valor predeterminado es G. Las unidades de tamaño se pueden expresar como potencias de 2 (B, KiB, MIB, GiB, TiB) o como potencias de 10 (B, KB, MB, GB, TB). Las unidades abreviadas utilizan potencias de 2 (G = GIB, T = TIB, …).
+
+
+
+
+
+== Quitar un volumen
+
+* Quite el volumen como cualquier otro volumen de Docker:
++
+[source, console]
+----
+docker volume rm firstVolume
+----
++
+
+IMPORTANT: Al utilizar `solidfire-san` el controlador, el ejemplo anterior elimina y purga el volumen.
+
+
+
+Realice los siguientes pasos para actualizar Trident para Docker.
+
+
+
+== Clonar un volumen
+
+Al utilizar `ontap-nas` , , , `ontap-san`, `solidfire-san` y `gcp-cvs storage drivers`, Trident puede clonar volúmenes. Al utilizar `ontap-nas-flexgroup` los controladores o `ontap-nas-economy`, no se admite la clonación. La creación de un volumen nuevo a partir de un volumen existente dará como resultado la creación de una copia de Snapshot nueva.
+
+* Examine el volumen para enumerar las instantáneas:
++
+[source, console]
+----
+docker volume inspect <volume_name>
+----
+* Cree un volumen nuevo a partir de un volumen existente. Esto dará como resultado la creación de una nueva snapshot:
++
+[source, console]
+----
+docker volume create -d <driver_name> --name <new_name> -o from=<source_docker_volume>
+----
+* Cree un volumen nuevo a partir de una snapshot existente en un volumen. Esto no creará una nueva snapshot:
++
+[source, console]
+----
+docker volume create -d <driver_name> --name <new_name> -o from=<source_docker_volume> -o fromSnapshot=<source_snap_name>
+----
+
+
+
+
+=== Ejemplo
+
+[source, console]
+----
+docker volume inspect firstVolume
+
+[
+  {
+    "Driver": "ontap-nas",
+    "Labels": null,
+    "Mountpoint": "/var/lib/docker-volumes/ontap-nas/netappdvp_firstVolume",
+    "Name": "firstVolume",
+    "Options": {},
+    "Scope": "global",
+    "Status": {
+      "Snapshots": [
+        {
+          "Created": "2017-02-10T19:05:00Z",
+          "Name": "hourly.2017-02-10_1505"
+        }
+      ]
+    }
+  }
+]
+
+docker volume create -d ontap-nas --name clonedVolume -o from=firstVolume
+clonedVolume
+
+docker volume rm clonedVolume
+docker volume create -d ontap-nas --name volFromSnap -o from=firstVolume -o fromSnapshot=hourly.2017-02-10_1505
+volFromSnap
+
+docker volume rm volFromSnap
+----
+
+
+== Acceso a volúmenes creados externamente
+
+Puede acceder a dispositivos de bloque creados externamente (o a sus clones) mediante contenedores utilizando Trident *Only* si no tienen particiones y si su sistema de archivos es compatible con Trident (por ejemplo: Un `ext4`-formateado `/dev/sdc1` no será accesible a través de Trident).

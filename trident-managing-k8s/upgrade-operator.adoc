@@ -1,0 +1,181 @@
+---
+sidebar: sidebar 
+permalink: trident-managing-k8s/upgrade-operator.html 
+keywords: upgrade, trident, methods, operator, tridentctl, helm 
+summary: Puede actualizar fácilmente una instalación existente de Trident con el operador. 
+---
+= Actualice una instalación de Trident con el operador Trident o Helm
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Puede actualizar Trident mediante el operador Trident manualmente o mediante Helm. Puede actualizar de una instalación del operador de Trident a otra instalación del operador de Trident o actualizar de una `tridentctl` instalación a una versión del operador de Trident. Revise link:upgrade-trident.html#select-an-upgrade-method["Seleccione un método de actualización"] antes de actualizar una instalación del operador Trident.
+
+
+
+== Actualizar una instalación manual
+
+Puede actualizar desde una instalación de operadores Trident en el ámbito del clúster a otra instalación del operador Trident en el ámbito del clúster. Todas las versiones 21,01 y superiores de Trident utilizan un operador en el ámbito del clúster.
+
+
+NOTE: Para actualizar desde Trident que se instaló con el operador de ámbito de espacio de nombres (versiones 20,07 a 20,10), use las instrucciones de actualización de de link:../earlier-versions.html["la versión instalada"]Trident.
+
+.Acerca de esta tarea
+Trident proporciona un archivo de paquete que se puede utilizar para instalar el operador y crear objetos asociados para la versión de Kubernetes.
+
+* Para los clústeres que ejecutan Kubernetes 1,24, utilice link:https://github.com/NetApp/trident/tree/stable/v25.02/deploy/bundle_pre_1_25.yaml["bundle_pre_1_25.yaml"^].
+* Para los clústeres que ejecutan Kubernetes 1,25 o posterior, utilice link:https://github.com/NetApp/trident/tree/stable/v25.02/deploy/bundle_post_1_25.yaml["bundle_post_1_25.yaml"^].
+
+
+.Antes de empezar
+Asegúrese de que está utilizando un clúster de Kubernetes en ejecución link:../trident-get-started/requirements.html["Una versión de Kubernetes compatible"].
+
+.Pasos
+. Compruebe su versión de Trident:
++
+[listing]
+----
+./tridentctl -n trident version
+----
+. Suprima el operador Trident que se utilizó para instalar la instancia de Trident actual. Por ejemplo, si va a actualizar desde 23,07, ejecute el siguiente comando:
++
+[listing]
+----
+kubectl delete -f 23.07.0/trident-installer/deploy/<bundle.yaml> -n trident
+----
+. Si personalizó la instalación inicial mediante `TridentOrchestrator` atributos, puede editar el `TridentOrchestrator` objeto para modificar los parámetros de instalación. Esto podría incluir cambios realizados para especificar registros de imágenes de Trident y CSI reflejados para el modo sin conexión, habilitar registros de depuración o especificar secretos de extracción de imágenes.
+. Instale Trident usando el archivo yaml del paquete correcto para su entorno, donde _<bundle.yaml>_ está
+`bundle_pre_1_25.yaml` o `bundle_post_1_25.yaml` basado en su versión de Kubernetes. Por ejemplo, si está instalando Trident 25,02, ejecute el siguiente comando:
++
+[listing]
+----
+kubectl create -f 25.02.0/trident-installer/deploy/<bundle.yaml> -n trident
+----
+
+
+
+
+== Actualizar una instalación Helm
+
+Puede actualizar una instalación de Trident Helm.
+
+
+WARNING: Cuando actualice un clúster de Kubernetes de 1,24 a 1,25 o una versión posterior que tiene Trident instalado, debe actualizar los valores.yaml para establecer `excludePodSecurityPolicy` `true` o agregar `--set excludePodSecurityPolicy=true` al `helm upgrade` comando antes de poder actualizar el clúster.
+
+Si ya has actualizado el clúster de Kubernetes de 1,24 a 1,25 sin actualizar el timón de Trident, la actualización de helm fallará. Para que la actualización de HELM se realice, realice estos pasos como requisitos previos:
+
+. Instale el plugin helm-mapkubeapis desde https://github.com/helm/helm-mapkubeapis[].
+. Realizar una ejecución en seco para la versión de Trident en el espacio de nombres donde está instalado Trident. Esto enumera los recursos, que se limpiarán.
++
+[listing]
+----
+helm mapkubeapis --dry-run trident  --namespace trident
+----
+. Realice una carrera completa con el timón para realizar la limpieza.
++
+[listing]
+----
+helm mapkubeapis trident  --namespace trident
+----
+
+
+.Pasos
+. Si link:../trident-get-started/kubernetes-deploy-helm.html#deploy-the-trident-operator-and-install-trident-using-helm["Trident instalado usando Helm"]utiliza `helm upgrade trident netapp-trident/trident-operator --version 100.2502.0` para actualizar en un solo paso. Si no ha añadido el repositorio Helm o no puede utilizarlo para actualizar:
++
+.. Descargue la versión más reciente de Trident en link:https://github.com/NetApp/trident/releases/latest["La sección _Assets_ de GitHub"^].
+.. Utilice `helm upgrade` el comando donde `trident-operator-25.02.0.tgz` refleja la versión a la que desea actualizar.
++
+[listing]
+----
+helm upgrade <name> trident-operator-25.02.0.tgz
+----
++
+
+NOTE: Si establece opciones personalizadas durante la instalación inicial (como la especificación de registros privados y reflejados para imágenes Trident y CSI), agregue el `helm upgrade` comando Using `--set` para asegurarse de que esas opciones se incluyen en el comando UPGRADE; de lo contrario, los valores se restablecerán a los valores predeterminados.
+
+
+
+. Ejecute `helm list` para verificar que la tabla y la versión de la aplicación se han actualizado. Ejecute `tridentctl logs` para revisar los mensajes de depuración.
+
+
+
+
+== Actualización de una `tridentctl` instalación al operador Trident
+
+Puede actualizar a la última versión del operador Trident desde una `tridentctl` instalación. Los back-ends y EVs existentes estarán disponibles automáticamente.
+
+
+NOTE: Antes de cambiar entre los métodos de instalación, revise link:../trident-get-started/kubernetes-deploy.html#moving-between-installation-methods["Moverse entre los métodos de instalación"].
+
+.Pasos
+. Descargue la versión más reciente de Trident.
++
+[listing]
+----
+# Download the release required [25.02.0]
+mkdir 25.02.0
+cd 25.02.0
+wget https://github.com/NetApp/trident/releases/download/v25.02.0/trident-installer-25.02.0.tar.gz
+tar -xf trident-installer-25.02.0.tar.gz
+cd trident-installer
+----
+. Cree el `tridentorchestrator` CRD a partir del manifiesto.
++
+[listing]
+----
+kubectl create -f deploy/crds/trident.netapp.io_tridentorchestrators_crd_post1.16.yaml
+----
+. Despliegue el operador de ámbito de cluster en el mismo espacio de nombres.
++
+[listing]
+----
+kubectl create -f deploy/<bundle-name.yaml>
+
+serviceaccount/trident-operator created
+clusterrole.rbac.authorization.k8s.io/trident-operator created
+clusterrolebinding.rbac.authorization.k8s.io/trident-operator created
+deployment.apps/trident-operator created
+podsecuritypolicy.policy/tridentoperatorpods created
+
+#Examine the pods in the Trident namespace
+NAME                                  READY   STATUS    RESTARTS   AGE
+trident-controller-79df798bdc-m79dc   6/6     Running   0          150d
+trident-node-linux-xrst8              2/2     Running   0          150d
+trident-operator-5574dbbc68-nthjv     1/1     Running   0          1m30s
+----
+. Cree un `TridentOrchestrator` CR para instalar Trident.
++
+[listing]
+----
+cat deploy/crds/tridentorchestrator_cr.yaml
+apiVersion: trident.netapp.io/v1
+kind: TridentOrchestrator
+metadata:
+  name: trident
+spec:
+  debug: true
+  namespace: trident
+
+kubectl create -f deploy/crds/tridentorchestrator_cr.yaml
+
+#Examine the pods in the Trident namespace
+NAME                                READY   STATUS    RESTARTS   AGE
+trident-csi-79df798bdc-m79dc        6/6     Running   0          1m
+trident-csi-xrst8                   2/2     Running   0          1m
+trident-operator-5574dbbc68-nthjv   1/1     Running   0          5m41s
+----
+. Confirmar que Trident se ha actualizado a la versión prevista.
++
+[listing]
+----
+kubectl describe torc trident | grep Message -A 3
+
+Message:                Trident installed
+Namespace:              trident
+Status:                 Installed
+Version:                v25.02.0
+----
+

@@ -1,0 +1,80 @@
+---
+sidebar: sidebar 
+permalink: trident-use/ontap-nas.html 
+keywords: trident backend, ontap nas, ontap-nas, ontap-nas-economy, ontap-nas-flexgroups, fsx, drivers, access modes, rwo, rwx, rwp, rwop, file system 
+summary: Obtenga más información sobre la configuración de un back-end de ONTAP con controladores NAS de ONTAP. 
+---
+= Información general del controlador de NAS de ONTAP
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Obtenga más información sobre la configuración de un entorno de administración de ONTAP con controladores NAS de ONTAP y Cloud Volumes ONTAP.
+
+
+
+== Información sobre el controlador de NAS de ONTAP
+
+Trident proporciona los siguientes controladores de almacenamiento NAS para comunicarse con el clúster de ONTAP. Los modos de acceso admitidos son: _ReadWriteOnce_ (RWO), _ReadOnlyMany_ (ROX), _ReadWriteMany_ (RWX), _ReadWriteOncePod_ (RWOP).
+
+[cols="2, 1, 1, 2, 2"]
+|===
+| Controlador | Protocolo | VolumeMode | Modos de acceso compatibles | Sistemas de archivos compatibles 
+
+
+| `ontap-nas`  a| 
+BLOQUE DE MENSAJES DEL SERVIDOR NFS
+ a| 
+Sistema de archivos
+ a| 
+RWO, ROX, RWX, RWOP
+ a| 
+« », `nfs`, `smb`
+
+
+
+| `ontap-nas-economy`  a| 
+BLOQUE DE MENSAJES DEL SERVIDOR NFS
+ a| 
+Sistema de archivos
+ a| 
+RWO, ROX, RWX, RWOP
+ a| 
+« », `nfs`, `smb`
+
+
+
+| `ontap-nas-flexgroup`  a| 
+BLOQUE DE MENSAJES DEL SERVIDOR NFS
+ a| 
+Sistema de archivos
+ a| 
+RWO, ROX, RWX, RWOP
+ a| 
+« », `nfs`, `smb`
+
+|===
+[WARNING]
+====
+* Utilice `ontap-san-economy` solo si se espera que el recuento de uso de volúmenes persistentes sea superior a link:https://docs.netapp.com/us-en/ontap/volumes/storage-limits-reference.html["Límites de volumen ONTAP compatibles"^].
+* Utilice `ontap-nas-economy` solo si se espera que el recuento de uso de volúmenes persistentes sea superior a link:https://docs.netapp.com/us-en/ontap/volumes/storage-limits-reference.html["Límites de volumen ONTAP compatibles"^] y `ontap-san-economy` no se puede utilizar el controlador.
+* No utilice `ontap-nas-economy` si anticipa la necesidad de protección de datos, recuperación ante desastres o movilidad.
+* NetApp no recomienda el uso de crecimiento automático de FlexVol en todos los controladores de ONTAP, excepto ONTAP-san. Como solución alternativa, Trident admite el uso de la reserva Snapshot y escala los volúmenes de FlexVol en consecuencia.
+
+
+====
+
+
+== Permisos de usuario
+
+Trident espera ejecutarse como administrador de ONTAP o SVM, normalmente utilizando el usuario del clúster o `vsadmin` un usuario de SVM, `admin` o bien como usuario con un nombre distinto que tenga el mismo rol.
+
+Para puestas en marcha de Amazon FSx para NetApp ONTAP, Trident espera ejecutarse como administrador de ONTAP o SVM, utilizando el usuario del clúster `fsxadmin` o un `vsadmin` usuario de SVM, o como un usuario con un nombre distinto que tenga el mismo rol.  `fsxadmin`El usuario es un sustituto limitado para el usuario administrador del clúster.
+
+
+NOTE: Si se usa `limitAggregateUsage` el parámetro, se requieren permisos de administrador del clúster. Cuando se usa Amazon FSx para NetApp ONTAP con Trident, el `limitAggregateUsage` parámetro no funcionará con `vsadmin` las cuentas de usuario y. `fsxadmin` La operación de configuración generará un error si se especifica este parámetro.
+
+Si bien es posible crear un rol más restrictivo dentro de ONTAP que puede utilizar un controlador Trident, no lo recomendamos. La mayoría de las nuevas versiones de Trident denominan API adicionales que se tendrían que tener en cuenta, por lo que las actualizaciones son complejas y propensas a errores.

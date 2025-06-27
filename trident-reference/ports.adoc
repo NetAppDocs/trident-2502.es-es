@@ -1,0 +1,40 @@
+---
+sidebar: sidebar 
+permalink: trident-reference/ports.html 
+keywords: Trident, port, ports 
+summary: Obtenga más información acerca de los puertos con los que Trident se comunica. 
+---
+= Puertos Trident
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Obtenga más información sobre los puertos que Trident utiliza para la comunicación.
+
+
+
+== Puertos Trident
+
+Trident se comunica a través de los siguientes puertos:
+
+[cols="2,4"]
+|===
+| Puerto | Específico 
+
+
+| 8443 | HTTPS de canal posterior 
+
+
+| 8001 | Extremo de métricas de Prometheus 
+
+
+| 8000 | Servidor REST de Trident 
+
+
+| 17546 | Puerto de sonda de presencia/preparación utilizado por los pods demonset de Trident 
+|===
+
+NOTE: El puerto de la sonda de vida/disponibilidad se puede cambiar durante la instalación con el `--probe-port` indicador. Es importante asegurarse de que este puerto no esté siendo utilizado por otro proceso en los nodos de trabajo.
