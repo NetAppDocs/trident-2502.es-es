@@ -118,9 +118,6 @@ Defina la identidad de carga de trabajo («azure.workload.identity/client-id: Xx
 
 
 | `nodePrep` | Permite a Trident preparar los nodos del clúster de Kubernetes para gestionar volúmenes mediante el protocolo de almacenamiento de datos especificado. *Actualmente, `iscsi` es el único valor soportado.* |  
-
-
-| `enableAutoBackendConfig` | Habilita la configuración de backend automática, que crea sin problemas clases de backend y almacenamiento basadas en parámetros de entrada. | Sin valores predeterminados; opcional 
 |===
 
 NOTE: Para obtener más información sobre el formato de los parámetros del pod, consulte link:https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/["Asignación de pods a nodos"^].
