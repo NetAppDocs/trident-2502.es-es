@@ -2,7 +2,7 @@
 sidebar: sidebar 
 permalink: trident-protect/trident-protect-installation.html 
 keywords: install, trident, protect, requirements, registry 
-summary: Si su entorno cumple los requisitos, puede seguir estos pasos para instalar Trident Protect. 
+summary: Si su entorno cumple con los requisitos, puede seguir estos pasos para instalar Trident Protect. 
 ---
 = Instalar y configurar Trident Protect
 :hardbreaks:
@@ -14,15 +14,15 @@ summary: Si su entorno cumple los requisitos, puede seguir estos pasos para inst
 
 
 [role="lead"]
-Si su entorno cumple los requisitos de protección Trident, puede seguir estos pasos para instalar Trident Protect en el clúster. Puede obtener Trident Protect de NetApp o instalarlo desde su propio registro privado. La instalación desde un registro privado es útil si su clúster no puede acceder a Internet.
+Si su entorno cumple con los requisitos de Trident Protect, puede seguir estos pasos para instalar Trident Protect en su clúster. Puede obtener Trident Protect de NetApp o instalarlo desde su propio registro privado. Instalar desde un registro privado resulta útil si su clúster no puede acceder a Internet.
 
 
 
-== Instale Trident Protect
+== Instalar Trident Protect
 
 [role="tabbed-block"]
 ====
-.Instale Trident Protect de NetApp
+.Instalar Trident Protect de NetApp
 --
 .Pasos
 . Añada el repositorio Helm de Trident:
@@ -31,13 +31,13 @@ Si su entorno cumple los requisitos de protección Trident, puede seguir estos p
 ----
 helm repo add netapp-trident-protect https://netapp.github.io/trident-protect-helm-chart
 ----
-. Instale los CRD de Trident Protect:
+. Instalar los CRD Trident Protect:
 +
 [source, console]
 ----
 helm install trident-protect-crds netapp-trident-protect/trident-protect-crds --version 100.2502.0 --create-namespace --namespace trident-protect
 ----
-. Utilice Helm para instalar Trident Protect. Sustituya `<name-of-cluster>` por un nombre de clúster, que se asignará al clúster y se utilizará para identificar los backups y las snapshots del clúster:
+. Utilice Helm para instalar Trident Protect. Reemplazar `<name-of-cluster>` con un nombre de clúster, que se asignará al clúster y se utilizará para identificar las copias de seguridad y las instantáneas del clúster:
 +
 [source, console]
 ----
@@ -46,9 +46,9 @@ helm install trident-protect netapp-trident-protect/trident-protect --set cluste
 
 
 --
-.Instale Trident Protect desde un registro privado
+.Instalar Trident Protect desde un registro privado
 --
-Puede instalar Trident Protect desde un registro de imágenes privado si su clúster de Kubernetes no puede acceder a Internet. En estos ejemplos, reemplace los valores entre paréntesis por información de su entorno:
+Puede instalar Trident Protect desde un registro de imágenes privado si su clúster de Kubernetes no puede acceder a Internet. En estos ejemplos, sustituya los valores entre corchetes por información de su entorno:
 
 .Pasos
 . Tire de las siguientes imágenes a su máquina local, actualice las etiquetas y, a continuación, empújelas en su registro privado:
@@ -108,7 +108,7 @@ kubectl create secret docker-registry regcred --docker-username=<registry-userna
 ----
 helm repo add netapp-trident-protect https://netapp.github.io/trident-protect-helm-chart
 ----
-. Crear un archivo llamado `protectValues.yaml`. Asegúrese de que contiene las siguientes configuraciones de Trident Protect:
+. Crea un archivo llamado `protectValues.yaml` . Asegúrese de que contenga las siguientes configuraciones de Trident Protect:
 +
 [source, yaml]
 ----
@@ -130,13 +130,13 @@ webhooksCleanup:
   imagePullSecrets:
     - name: regcred
 ----
-. Instale los CRD de Trident Protect:
+. Instalar los CRD Trident Protect:
 +
 [source, console]
 ----
 helm install trident-protect-crds netapp-trident-protect/trident-protect-crds --version 100.2502.0 --create-namespace --namespace trident-protect
 ----
-. Utilice Helm para instalar Trident Protect. Sustituya `<name_of_cluster>` por un nombre de clúster, que se asignará al clúster y se utilizará para identificar los backups y las snapshots del clúster:
+. Utilice Helm para instalar Trident Protect. Reemplazar `<name_of_cluster>` con un nombre de clúster, que se asignará al clúster y se utilizará para identificar las copias de seguridad y las instantáneas del clúster:
 +
 [source, console]
 ----

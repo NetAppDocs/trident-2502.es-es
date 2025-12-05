@@ -2,9 +2,9 @@
 sidebar: sidebar 
 permalink: trident-protect/trident-protect-restore-apps.html 
 keywords: trident, protect, restore, data, backup 
-summary: Es posible usar Trident Protect para restaurar la aplicación desde una snapshot o un backup. La restauración a partir de una snapshot existente será más rápida cuando se restaure la aplicación en el mismo clúster. 
+summary: Puede utilizar Trident Protect para restaurar su aplicación desde una instantánea o una copia de seguridad. Restaurar desde una instantánea existente será más rápido al restaurar la aplicación en el mismo clúster. 
 ---
-= Restaure aplicaciones mediante Trident Protect
+= Restaurar aplicaciones usando Trident Protect
 :hardbreaks:
 :allow-uri-read: 
 :nofooter: 
@@ -14,7 +14,7 @@ summary: Es posible usar Trident Protect para restaurar la aplicación desde una
 
 
 [role="lead"]
-Es posible usar Trident Protect para restaurar la aplicación desde una snapshot o un backup. La restauración a partir de una snapshot existente será más rápida cuando se restaure la aplicación en el mismo clúster.
+Puede utilizar Trident Protect para restaurar su aplicación desde una instantánea o una copia de seguridad. Restaurar desde una instantánea existente será más rápido al restaurar la aplicación en el mismo clúster.
 
 
 NOTE: Al restaurar una aplicación, todos los ganchos de ejecución configurados para la aplicación se restauran con la aplicación. Si hay un enlace de ejecución posterior a la restauración, se ejecuta automáticamente como parte de la operación de restauración.
@@ -34,7 +34,7 @@ Puede evitar que se sobrescriban anotaciones específicas en el espacio de nombr
 ----
 kubectl set env -n trident-protect deploy/trident-protect-controller-manager RESTORE_SKIP_NAMESPACE_ANNOTATIONS=<annotation_key_to_skip_1>,<annotation_key_to_skip_2>
 ----
-Si instaló la aplicación de origen con Helm con el `--create-namespace` indicador, se le dará un tratamiento especial a la `name` clave de etiqueta. Durante el proceso de restauración o recuperación tras fallos, Trident protege esta etiqueta al espacio de nombres de destino, pero actualiza el valor al valor del espacio de nombres de destino si el valor del origen coincide con el espacio de nombres de origen. Si este valor no coincide con el espacio de nombres de origen, se copia al espacio de nombres de destino sin cambios.
+Si instalaste la aplicación de origen usando Helm con el `--create-namespace` bandera, se le da un trato especial a la `name` Clave de etiqueta. Durante el proceso de restauración o conmutación por error, Trident Protect copia esta etiqueta en el espacio de nombres de destino, pero actualiza el valor al valor del espacio de nombres de destino si el valor del origen coincide con el espacio de nombres de origen. Si este valor no coincide con el espacio de nombres de origen, se copia al espacio de nombres de destino sin cambios.
 
 
 
@@ -102,7 +102,7 @@ En la siguiente tabla se muestra el estado del espacio de nombres de destino de 
 
 == Restauración desde un backup a un espacio de nombres diferente
 
-Cuando se restaura un backup en un espacio de nombres diferente con BackupRestore CR, Trident Protect restaura la aplicación en un espacio de nombres nuevo y crea un CR de aplicación para la aplicación restaurada. Para proteger la aplicación restaurada, cree backups o snapshots bajo demanda, o establezca una programación de protección.
+Cuando restaura una copia de seguridad en un espacio de nombres diferente mediante un CR de BackupRestore, Trident Protect restaura la aplicación en un nuevo espacio de nombres y crea un CR de aplicación para la aplicación restaurada. Para proteger la aplicación restaurada, cree copias de seguridad o instantáneas bajo demanda, o establezca un programa de protección.
 
 
 NOTE: Al restaurar un backup en un espacio de nombres diferente con los recursos existentes, no se alterará ningún recurso que comparta los nombres con los que aparecen en el backup. Para restaurar todos los recursos del backup, elimine y vuelva a crear el espacio de nombres objetivo, o restaure el backup en un nuevo espacio de nombres.
@@ -115,7 +115,7 @@ Asegúrese de que la caducidad del token de sesión de AWS sea suficiente para l
 
 
 
-NOTE: Al restaurar copias de seguridad con KOPIA como el transmisor de datos, puede especificar anotaciones en el CR o utilizar la CLI para controlar el comportamiento del almacenamiento de elementos utilizados por KOPIA. Consulte el https://kopia.io/docs/getting-started/["Documentación de KOPIA"^] para obtener más información acerca de las opciones que puede configurar. Utilice `tridentctl-protect create --help` el comando para obtener más información sobre cómo especificar anotaciones con la interfaz de línea de comandos de Trident Protect.
+NOTE: Al restaurar copias de seguridad utilizando Kopia como transportador de datos, puede especificar opcionalmente anotaciones en la CR o usar la CLI para controlar el comportamiento del almacenamiento temporal utilizado por Kopia. Consulte el https://kopia.io/docs/getting-started/["Documentación de KOPIA"^] Para obtener más información sobre las opciones que puede configurar. Utilice el `tridentctl-protect create --help` Comando para obtener más información sobre cómo especificar anotaciones con la CLI de Trident Protect.
 
 [role="tabbed-block"]
 ====
@@ -159,7 +159,7 @@ spec:
 . (_Optional_) Si necesita seleccionar solo ciertos recursos de la aplicación para restaurar, agregue filtros que incluyan o excluyan recursos marcados con etiquetas particulares:
 +
 
-NOTE: Trident Protect selecciona algunos recursos de forma automática debido a su relación con los recursos que se seleccionan. Por ejemplo, si selecciona un recurso de reclamación de volumen persistente y tiene un pod asociado, Trident Protect también restaurará el pod asociado.
+NOTE: Trident Protect selecciona algunos recursos automáticamente debido a su relación con los recursos que usted selecciona. Por ejemplo, si selecciona un recurso de reclamo de volumen persistente y tiene un pod asociado, Trident Protect también restaurará el pod asociado.
 
 +
 ** *ResourceFilter.resourceSelectionCriteria*: (Requerido para filtrar) Usar `Include` o `Exclude` incluir o excluir un recurso definido en resourceMatchers. Agregue los siguientes parámetros resourceMatchers para definir los recursos que se van a incluir o excluir:
@@ -240,7 +240,7 @@ Asegúrese de que la caducidad del token de sesión de AWS sea suficiente para l
 
 
 
-NOTE: Al restaurar copias de seguridad con KOPIA como el transmisor de datos, puede especificar anotaciones en el CR o utilizar la CLI para controlar el comportamiento del almacenamiento de elementos utilizados por KOPIA. Consulte el https://kopia.io/docs/getting-started/["Documentación de KOPIA"^] para obtener más información acerca de las opciones que puede configurar. Utilice `tridentctl-protect create --help` el comando para obtener más información sobre cómo especificar anotaciones con la interfaz de línea de comandos de Trident Protect.
+NOTE: Al restaurar copias de seguridad utilizando Kopia como transportador de datos, puede especificar opcionalmente anotaciones en la CR o usar la CLI para controlar el comportamiento del almacenamiento temporal utilizado por Kopia. Consulte el https://kopia.io/docs/getting-started/["Documentación de KOPIA"^] Para obtener más información sobre las opciones que puede configurar. Utilice el `tridentctl-protect create --help` Comando para obtener más información sobre cómo especificar anotaciones con la CLI de Trident Protect.
 
 [role="tabbed-block"]
 ====
@@ -281,7 +281,7 @@ spec:
 . (_Optional_) Si necesita seleccionar solo ciertos recursos de la aplicación para restaurar, agregue filtros que incluyan o excluyan recursos marcados con etiquetas particulares:
 +
 
-NOTE: Trident Protect selecciona algunos recursos de forma automática debido a su relación con los recursos que se seleccionan. Por ejemplo, si selecciona un recurso de reclamación de volumen persistente y tiene un pod asociado, Trident Protect también restaurará el pod asociado.
+NOTE: Trident Protect selecciona algunos recursos automáticamente debido a su relación con los recursos que usted selecciona. Por ejemplo, si selecciona un recurso de reclamo de volumen persistente y tiene un pod asociado, Trident Protect también restaurará el pod asociado.
 
 +
 ** *ResourceFilter.resourceSelectionCriteria*: (Requerido para filtrar) Usar `Include` o `Exclude` incluir o excluir un recurso definido en resourceMatchers. Agregue los siguientes parámetros resourceMatchers para definir los recursos que se van a incluir o excluir:
@@ -354,12 +354,12 @@ tridentctl-protect create backupinplacerestore <my_restore_name> \
 Puede restaurar un backup a otro clúster si hay un problema con el clúster original.
 
 
-NOTE: Al restaurar copias de seguridad con KOPIA como el transmisor de datos, puede especificar anotaciones en el CR o utilizar la CLI para controlar el comportamiento del almacenamiento de elementos utilizados por KOPIA. Consulte el https://kopia.io/docs/getting-started/["Documentación de KOPIA"^] para obtener más información acerca de las opciones que puede configurar. Utilice `tridentctl-protect create --help` el comando para obtener más información sobre cómo especificar anotaciones con la interfaz de línea de comandos de Trident Protect.
+NOTE: Al restaurar copias de seguridad utilizando Kopia como transportador de datos, puede especificar opcionalmente anotaciones en la CR o usar la CLI para controlar el comportamiento del almacenamiento temporal utilizado por Kopia. Consulte el https://kopia.io/docs/getting-started/["Documentación de KOPIA"^] Para obtener más información sobre las opciones que puede configurar. Utilice el `tridentctl-protect create --help` Comando para obtener más información sobre cómo especificar anotaciones con la CLI de Trident Protect.
 
 .Antes de empezar
 Asegúrese de que se cumplen los siguientes requisitos previos:
 
-* El clúster de destino tiene instalado Trident Protect.
+* El clúster de destino tiene Trident Protect instalado.
 * El clúster de destino tiene acceso a la ruta de bloque de la misma AppVault que el clúster de origen, en la que se almacena el backup.
 * Asegúrese de que la caducidad del token de sesión de AWS sea suficiente para las operaciones de restauración que se ejecuten durante mucho tiempo. Si el token caduca durante la operación de restauración, puede fallar la operación.
 +
@@ -370,7 +370,7 @@ Asegúrese de que se cumplen los siguientes requisitos previos:
 
 
 .Pasos
-. Compruebe la disponibilidad de AppVault CR en el clúster de destino mediante el complemento de CLI de Trident Protect:
+. Verifique la disponibilidad de AppVault CR en el clúster de destino mediante el complemento CLI de Trident Protect:
 +
 [source, console]
 ----
@@ -478,7 +478,7 @@ tridentctl-protect create backuprestore <restore_name> \
 
 == Restauración desde una copia snapshot a un espacio de nombres diferente
 
-Puede restaurar datos desde una copia Snapshot con un archivo de recurso personalizado (CR) en un espacio de nombres diferente o en el espacio de nombres de origen original. Al restaurar una snapshot en un espacio de nombres diferente con SnapshotRestore CR, Trident Protect restaura la aplicación en un espacio de nombres nuevo y crea un CR de aplicación para la aplicación restaurada. Para proteger la aplicación restaurada, cree backups o snapshots bajo demanda, o establezca una programación de protección.
+Puede restaurar datos desde una instantánea utilizando un archivo de recursos personalizados (CR) ya sea en un espacio de nombres diferente o en el espacio de nombres de origen original. Cuando restaura una instantánea a un espacio de nombres diferente mediante un CR de SnapshotRestore, Trident Protect restaura la aplicación en un nuevo espacio de nombres y crea un CR de aplicación para la aplicación restaurada. Para proteger la aplicación restaurada, cree copias de seguridad o instantáneas bajo demanda, o establezca un programa de protección.
 
 .Antes de empezar
 Asegúrese de que la caducidad del token de sesión de AWS sea suficiente para las operaciones de restauración de S3 que se ejecuten durante mucho tiempo. Si el token caduca durante la operación de restauración, puede fallar la operación.
@@ -531,7 +531,7 @@ spec:
 . (_Optional_) Si necesita seleccionar solo ciertos recursos de la aplicación para restaurar, agregue filtros que incluyan o excluyan recursos marcados con etiquetas particulares:
 +
 
-NOTE: Trident Protect selecciona algunos recursos de forma automática debido a su relación con los recursos que se seleccionan. Por ejemplo, si selecciona un recurso de reclamación de volumen persistente y tiene un pod asociado, Trident Protect también restaurará el pod asociado.
+NOTE: Trident Protect selecciona algunos recursos automáticamente debido a su relación con los recursos que usted selecciona. Por ejemplo, si selecciona un recurso de reclamo de volumen persistente y tiene un pod asociado, Trident Protect también restaurará el pod asociado.
 
 +
 ** *ResourceFilter.resourceSelectionCriteria*: (Requerido para filtrar) Usar `Include` o `Exclude` incluir o excluir un recurso definido en resourceMatchers. Agregue los siguientes parámetros resourceMatchers para definir los recursos que se van a incluir o excluir:
@@ -653,7 +653,7 @@ spec:
 . (_Optional_) Si necesita seleccionar solo ciertos recursos de la aplicación para restaurar, agregue filtros que incluyan o excluyan recursos marcados con etiquetas particulares:
 +
 
-NOTE: Trident Protect selecciona algunos recursos de forma automática debido a su relación con los recursos que se seleccionan. Por ejemplo, si selecciona un recurso de reclamación de volumen persistente y tiene un pod asociado, Trident Protect también restaurará el pod asociado.
+NOTE: Trident Protect selecciona algunos recursos automáticamente debido a su relación con los recursos que usted selecciona. Por ejemplo, si selecciona un recurso de reclamo de volumen persistente y tiene un pod asociado, Trident Protect también restaurará el pod asociado.
 
 +
 ** *ResourceFilter.resourceSelectionCriteria*: (Requerido para filtrar) Usar `Include` o `Exclude` incluir o excluir un recurso definido en resourceMatchers. Agregue los siguientes parámetros resourceMatchers para definir los recursos que se van a incluir o excluir:
